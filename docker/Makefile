@@ -192,7 +192,13 @@ clean_repository :
 # this would set in a make.loc
 TEST_COMPOSE_ARGS += -f test.yaml
 
-test : clean_config clean_repository clean_models build_contracts
+test_bk : clean_config clean_repository clean_models build_contracts
+	- PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
+	 	docker-compose $(TEST_COMPOSE_ARGS) up --abort-on-container-exit
+	PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
+	 	docker-compose $(TEST_COMPOSE_ARGS) down
+
+test : 
 	- PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
 	 	docker-compose $(TEST_COMPOSE_ARGS) up --abort-on-container-exit
 	PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
@@ -200,12 +206,17 @@ test : clean_config clean_repository clean_models build_contracts
 
 JUPYTER_COMPOSE_ARGS += -f test_jupyter.yaml
 
-test_jupyter : clean_config clean_repository clean_models build_contracts
+test_jupyter : 
 	- PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
 		docker-compose $(JUPYTER_COMPOSE_ARGS) up --abort-on-container-exit
 	PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
 		docker-compose $(JUPYTER_COMPOSE_ARGS) down
 
+test_jupyter_bk : clean_config clean_repository clean_models build_contracts
+	- PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
+		docker-compose $(JUPYTER_COMPOSE_ARGS) up --abort-on-container-exit
+	PDO_VERSION=$(PDO_VERSION) CONTRACTS_VERSION=$(CONTRACTS_VERSION) \
+		docker-compose $(JUPYTER_COMPOSE_ARGS) down
 # -----------------------------------------------------------------
 # Cleaning is a bit interesting because the containers don't go away
 # unless they are told to very nicely. Until they go away they hold onto

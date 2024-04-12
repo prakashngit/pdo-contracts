@@ -23,23 +23,6 @@ version: "3.4"
 # containers.
 
 services:
-  ccf_container:
-    image: ${PDO_REPOSITORY:-}pdo_ccf:${PDO_VERSION:-latest}
-    container_name: ccf_container
-    network_mode: "host"
-    volumes:
-      - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/start_ccf.sh -m build -i localhost --start
-
-  services_container:
-    image: ${PDO_REPOSITORY:-}pdo_services:${PDO_VERSION:-latest}
-    container_name: services_container
-    depends_on: [ ccf_container ]
-    network_mode: "host"
-    volumes:
-      - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/start_services.sh -m build -c 5 -i localhost -l http://127.0.0.1:6600
-
   openvino_container:
     image: openvino/model_server:latest
     container_name: openvino_container
@@ -52,21 +35,19 @@ services:
     image: pdo_contracts:${CONTRACTS_VERSION}
     container_name: guardian_container
     depends_on:
-      - services_container
       - openvino_container
     network_mode: "host"
     volumes:
       - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/run_guardian_tests.sh -i localhost -l http://127.0.0.1:6600
+    entrypoint: /project/pdo/tools/run_guardian_tests.sh -i ${NODE_PRIVATE_IP} -l ${PDO_LEDGER_URL}
 
   contracts_container:
     image: pdo_contracts:${CONTRACTS_VERSION}
     container_name: jupyter_container
     depends_on:
-      - services_container
       - openvino_container
       - guardian_container
     network_mode: "host"
     volumes:
       - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/run_jupyter_tests.sh -i localhost -l http://127.0.0.1:6600
+    entrypoint: /project/pdo/tools/run_jupyter_tests.sh -i ${NODE_PRIVATE_IP} -l ${PDO_LEDGER_URL}

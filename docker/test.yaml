@@ -20,38 +20,21 @@ version: "3.4"
 # containers.
 
 services:
-  ccf_container:
-    image: ${PDO_REPOSITORY:-}pdo_ccf:${PDO_VERSION:-latest}
-    container_name: ccf_container
-    network_mode: "host"
-    volumes:
-      - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/start_ccf.sh -m build -i localhost --start
 
-  services_container:
-    image: ${PDO_REPOSITORY:-}pdo_services:${PDO_VERSION:-latest}
-    container_name: services_container
-    depends_on: [ ccf_container ]
-    network_mode: "host"
-    volumes:
-      - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/start_services.sh -m build -c 5 -i localhost -l http://127.0.0.1:6600
+        openvino_container:
+                image: openvino/model_server:latest
+                container_name: openvino_container
+                network_mode: "host"
+                volumes:
+                        - ./models/:/models/
+                command: --model_path /models/ --model_name resnet --port 9000 --shape auto --grpc_bind_address 127.0.0.1
 
-  openvino_container:
-    image: openvino/model_server:latest
-    container_name: openvino_container
-    network_mode: "host"
-    volumes:
-      - ./models/:/models/
-    command: --model_path /models/ --model_name resnet --port 9000 --shape auto --grpc_bind_address 127.0.0.1
-
-  contracts_container:
-    image: pdo_contracts:${CONTRACTS_VERSION}
-    container_name: contracts_container
-    depends_on:
-      - services_container
-      - openvino_container
-    network_mode: "host"
-    volumes:
-      - ./xfer/:/project/pdo/xfer/
-    entrypoint: /project/pdo/tools/run_contracts_tests.sh -s localhost -l http://127.0.0.1:6600
+        contracts_container:
+                image: pdo_contracts:${CONTRACTS_VERSION}
+                container_name: contracts_container
+                depends_on:
+                        - openvino_container
+                network_mode: "host"
+                volumes:
+                        - ./xfer/:/project/pdo/xfer/
+                entrypoint: /project/pdo/tools/run_contracts_tests.sh -s ${PDO_HOSTNAME} -l ${PDO_LEDGER_URL}

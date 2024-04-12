@@ -53,7 +53,7 @@ fi
 # The client only uses PDO_HOSTNAME to create the initial configuration
 # file. Since the notebook will override this for each operation, we
 # just leave it set to localhost
-export PDO_HOSTNAME=localhost
+export PDO_HOSTNAME=${F_INTERFACE}
 export PDO_LEDGER_URL=${F_LEDGER_URL}
 
 export no_proxy=$PDO_HOSTNAME,$no_proxy
@@ -92,7 +92,8 @@ try ${PDO_HOME}/contracts/inference/scripts/ss_start.sh -c -o ${PDO_HOME}/logs -
     --loglevel ${F_LOGLEVEL} \
     --config guardian_service.toml \
     --config-dir ${PDO_HOME}/etc/contracts \
-    --identity guardian_sservice
+    --identity guardian_sservice \
+    --bind host ${F_INTERFACE}
 
 try ${PDO_HOME}/contracts/inference/scripts/gs_start.sh -c -o ${PDO_HOME}/logs -- \
     --loglevel ${F_LOGLEVEL} \
